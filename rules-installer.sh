@@ -36,7 +36,7 @@ validate_local_source() {
   SOURCE_CONTENT=$(cat "$SOURCE")
 
   # Check if the content starts with "<group>"
-  if [[ ! "$SOURCE_CONTENT" =~ ^\<group.* ]]; then
+  if [[ ! "$SOURCE_CONTENT" =~ \<group.* ]]; then
     echo "Source content does not start with '<group>'. Updating the source content to start with <group>."
     echo '<group name="local,automated,">' | cat - "$SOURCE" > temp && mv temp "$SOURCE"
   else
@@ -64,7 +64,38 @@ validate_remote_source() {
     echo "Error: The specified URL '$SOURCE' is not reachable."
     exit 1
   fi
+
+  echo "Downloading the rules file to $LOCAL_FILE"
+
+  # Download the file
+  if ! curl -o "$LOCAL_FILE" -sfL "$SOURCE"; then
+    echo "Error: Unable to download the file from '$SOURCE_URL'."
+    exit 1
+  fi
+
+  SOURCE_CONTENT=$(cat "$LOCAL_FILE")
+
+  # Check if the content starts with "<group>"
+  if [[ ! "$SOURCE_CONTENT" =~ \<group.* ]]; then
+    echo "Source content does not start with '<group>'. Updating the source content to start with <group>."
+    echo '<group name="local,automated,">' | cat - "$SOURCE" > temp && mv temp "$SOURCE"
+  else
+    echo -e "\e[32m\u2713 Source content starts with '<group>'. XML validation 1 passed. \e[0m"
+  fi
+
+  # Check if the content ends with "</group>"
+  if [[ ! "$SOURCE_CONTENT" =~ \</group\>$ ]]; then
+    echo "Source content does not end with '</group>'. Updating the source content to end with </group>."
+    echo '</group>' >> "$SOURCE"
+  else
+    echo -e "\e[32m\u2713 Source content ends with '</group>'. XML validation 2 passed. \e[0m"
+  fi
 }
+
+# validate_rule_ids() {
+
+
+# }
 
 if [ "$#" -eq 0 ]; then
   print_help
@@ -75,6 +106,7 @@ SOURCE=""
 DESTINATION="/var/ossec/etc/rules/local_rules.xml"
 TYPE="local"
 RESTART="yes"
+LOCAL_FILE="/tmp/temporary_wazuh_rules_file.txt"
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
@@ -137,6 +169,15 @@ if [ "$TYPE" == "local" ]; then
 elif [ "$TYPE" == "remote" ]; then
   # Process for remote source
   validate_remote_source
+  if [ "$DESTINATION" = "/var/ossec/etc/rules/local_rules.xml" ]; then
+      echo "Updating the rules files $DESTINATION"
+      cat "$LOCAL_FILE" >> "$DESTINATION"
+      echo -e "\e[32m\u2713 $DESTINATION rules file updated with the new rules. \e[0m"
+  else
+      cp "$LOCAL_FILE" "$DESTINATION"
+      echo -e "\e[32m\u2713 Rules file created in /var/ossec/etc/rules/$DESTINATION. \e[0m"
+  fi
+  
 else
   echo "Invalid source option"
   exit 1
