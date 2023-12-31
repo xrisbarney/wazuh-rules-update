@@ -9,10 +9,15 @@ The Wazuh Rules Installer script is designed to add custom rules for to your Waz
 ### Options
 
 `-t|--type <local/remote>`: Specifies the type of rule installation, either local or remote.
+
 `-s|--source <url/filename>`: Specifies the source of rules, either a URL for remote installation or a filename for local installation.
+
 `-d|--destination <destination>`: Specifies the destination file name for the rules. Put only the file name, no path and the file name should end with .xml. The file will be created in `/var/ossec/etc/rules/`. If the destination file name is not specified, it adds the rules to local_rules.xml. 
+
 `-r|--restart <yes/no>`: Specifies whether to restart the Wazuh manager after rule installation. The default behaviour is to restart.
+
 `-h|--help`: Displays the help message.
+
 `-v|--version`: Displays the script version information.
 
 ### Examples
@@ -24,7 +29,9 @@ The Wazuh Rules Installer script is designed to add custom rules for to your Waz
 
 ## Version Information
 Version: 1.0
+
 Author: Chris Bassey (https://github.com/xrisbarney)
+
 Release Date: 31.12.2023
 
 ## ⚠️ Disclaimer
